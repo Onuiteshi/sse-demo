@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h2>SSE Notifications</h2>
+  <ul id="events"></ul>
+
+  <script>
+    const eventSource = new EventSource('http://localhost:3000/notifications');
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      const li = document.createElement('li');
+      li.textContent = `${data.timestamp} — ${data.message}`;
+      document.getElementById('events').appendChild(li);
+    };
+
+    eventSource.onerror = () => {
+      console.log('SSE connection error');
+    };
+  </script>
+</body>
+</html>
