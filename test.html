@@ -6,20 +6,36 @@
 
   <script>
     const userId = '123';
-    const eventSource = new EventSource(
-      `http://localhost:3000/notifications?userId=${userId}`
-    );
+    const storageKey = `lastEventId_${userId}`;
 
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const li = document.createElement('li');
-      li.textContent = `${data.timestamp} — ${data.message}`;
-      document.getElementById('events').appendChild(li);
-    };
+    function connect() {
+      const lastEventId = localStorage.getItem(storageKey);
 
-    eventSource.onerror = () => {
-      console.log('SSE connection error');
-    };
+      const url = lastEventId
+        ? `http://localhost:3000/notifications?userId=${userId}&lastEventId=${lastEventId}`
+        : `http://localhost:3000/notifications?userId=${userId}`;
+
+      const eventSource = new EventSource(url);
+
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+    
+        if (data.id) {
+          localStorage.setItem(storageKey, data.id);
+        }
+
+        const li = document.createElement('li');
+        li.textContent = `${data.timestamp} — ${data.message}`;
+        document.getElementById('events').appendChild(li);
+      };
+
+      eventSource.onerror = () => {
+        console.log('SSE connection error - reconnecting...');
+      };
+    }
+
+    connect();
   </script>
 </body>
 </html>
