@@ -1,20 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { map, Observable, Subject } from 'rxjs';
+import { filter, map, Observable, Subject } from 'rxjs';
+
+interface NotificationEvent {
+    userId: string;
+    message: string;
+}
 
 @Injectable()
 export class NotificationsService {
-    private notificationSubject = new Subject<string>();
+    private notificationSubject = new Subject<NotificationEvent>();
 
-    sendNotification(message:string):void {
-        this.notificationSubject.next(message);
+    sendNotification(userId:string,message:string):void {
+        this.notificationSubject.next({userId,message});
     }
 
-    getNotificationStream(): Observable<MessageEvent>{
+    getNotificationStream(userId:string): Observable<MessageEvent>{
         return this.notificationSubject.pipe(
-            map((message):MessageEvent =>({
-                data : {message,timestamp : new Date().toISOString()}
+            filter((event) => event.userId === userId),
+            map((event):MessageEvent =>({
+                data : {message:event.message,timestamp : new Date().toISOString()}
             } as MessageEvent))
-        )
+        );
     }
     
 }

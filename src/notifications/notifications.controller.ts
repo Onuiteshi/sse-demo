@@ -1,4 +1,4 @@
-import { Controller, Post,Body, Sse } from '@nestjs/common';
+import { Controller, Post,Body, Sse, Query } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { Observable } from 'rxjs';
 
@@ -7,13 +7,13 @@ export class NotificationsController {
     constructor(private readonly notificationService : NotificationsService){}
 
     @Sse()
-    stream():Observable<MessageEvent>{
-        return this.notificationService.getNotificationStream();
+    stream(@Query('userId') userId:string):Observable<MessageEvent>{
+        return this.notificationService.getNotificationStream(userId);
     }
 
     @Post()
-    send(@Body() body:{message:string}): {status:string}{
-        this.notificationService.sendNotification(body.message);
+    send(@Body() body:{userId:string,message:string}): {status:string}{
+        this.notificationService.sendNotification(body.userId,body.message);
         return {status:'notification sent'};
     }
 
